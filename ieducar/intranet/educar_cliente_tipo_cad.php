@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Tipo Cliente" );
 		$this->processoAp = "596";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -98,6 +99,16 @@ class indice extends clsCadastro
 		}
 		$this->url_cancelar = ($retorno == "Editar") ? "educar_cliente_tipo_det.php?cod_cliente_tipo={$registro["cod_cliente_tipo"]}" : "educar_cliente_tipo_lst.php";
 		$this->nome_url_cancelar = "Cancelar";
+
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""        => "{$nomeMenu} tipo de cliente"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+
 		return $retorno;
 	}
 
@@ -267,15 +278,20 @@ class indice extends clsCadastro
 				foreach ( $array_tipos AS $exemplar_tipo => $dias_emprestimo )
 				{
 					$obj = new clsPmieducarClienteTipoExemplarTipo( $this->cod_cliente_tipo, $exemplar_tipo, $dias_emprestimo );
-					$editou2  = $obj->edita();
-					if ( !$editou2 )
+
+          if($obj->existe() == false)
+  					$result = $obj->cadastra();
+          else
+  					$result = $obj->edita();
+
+					if (! $result)
 					{
-						$this->mensagem = "Edi&ccedil;&atilde;o n&atilde;o realizada.<br>";
-						echo "<!--\nErro ao editar clsPmieducarClienteTipoExemplarTipo\nvalores obrigat&oacute;rios\nis_numeric( $this->cod_cliente_tipo ) && is_numeric( {$this->pessoa_logada} )\n-->";
+						$this->mensagem = "Aparentemente ocorreu um erro ao gravar os dias de emprestimo.<br>";
 						return false;
 					}
 				}
 			}
+
 		//-----------------------FIM EDITA EXEMPLAR TIPO------------------------//
 
 			$this->mensagem .= "Edi&ccedil;&atilde;o efetuada com sucesso.<br>";
@@ -388,7 +404,7 @@ function getExemplarTipo_XML(xml)
 			dias_tipo_exemplar.setAttribute( 'value', tipo_exemplar[j].getAttribute("dias_emprestimo"));
 		else
 			dias_tipo_exemplar.setAttribute( 'value', '');
-		
+
 		dias_tipo_exemplar.setAttribute( 'class', 'obrigatorio' );
 
 		exemplares.innerHTML += aux;

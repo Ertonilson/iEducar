@@ -49,6 +49,23 @@ class IndexController extends Core_Controller_Page_ListController
   protected $_titulo     = 'Listagem de áreas de conhecimento';
   protected $_processoAp = 945;
   protected $_tableMap   = array(
-    'Nome' => 'nome'
+    'Nome' => 'nome',
+    'Seção' => 'secao'
   );
+
+  protected function _preRender(){
+
+    parent::_preRender();
+
+    Portabilis_View_Helper_Application::loadStylesheet($this, 'intranet/styles/localizacaoSistema.css');
+
+    $localizacao = new LocalizacaoSistema();
+
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Listagem de &aacute;reas de conhecimento"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+  }
 }

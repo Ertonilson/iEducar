@@ -28,6 +28,7 @@ require_once ("include/clsBase.inc.php");
 require_once ("include/clsListagem.inc.php");
 require_once ("include/clsBanco.inc.php");
 require_once( "include/pmieducar/geral.inc.php" );
+require_once ("include/localizacaoSistema.php");
 
 class clsIndexBase extends clsBase
 {
@@ -35,6 +36,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Obras" );
 		$this->processoAp = "598";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -89,6 +91,7 @@ class indice extends clsListagem
 	var $data_exclusao;
 	var $ativo;
 	var $ref_cod_biblioteca;
+	var $ref_cod_assunto_acervo;
 
 	function Gerar()
 	{
@@ -101,7 +104,7 @@ class indice extends clsListagem
 		foreach( $_GET AS $var => $val ) // passa todos os valores obtidos no GET para atributos do objeto
 			$this->$var = ( $val === "" ) ? null: $val;
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$lista_busca = array(
 			"Obra"
@@ -163,6 +166,17 @@ class indice extends clsListagem
 		$this->campoLista("ref_cod_exemplar_tipo", "Tipo Exemplar", $opcoes_exemplar, $this->ref_cod_exemplar_tipo, "", false, "", "", false, false);
 		$this->campoLista("ref_cod_acervo_editora", "Editora", $opcoes_editora, $this->ref_cod_acervo_editora, "", false, "", "", false, false);
 		
+    $objTemp = new clsPmieducarAcervoAssunto();
+    $lista = $objTemp->lista();
+
+    if (is_array($lista) && count($lista)) {
+      foreach ($lista as $registro) {
+        $opcoes[$registro['cod_acervo_assunto']] = $registro['nm_assunto'];
+      }
+    }		
+
+	  $this->campoLista('ref_cod_assunto_acervo', 'Assunto', $opcoes, $this->ref_cod_assunto_acervo, '', FALSE, '',
+    	  '', FALSE, FALSE);		
 		
 		$this->campoTexto( "titulo_livro", "Titulo", $this->titulo_livro, 30, 255, false );
 
@@ -180,6 +194,7 @@ class indice extends clsListagem
 		$obj_acervo = new clsPmieducarAcervo();
 		$obj_acervo->setOrderby( "titulo ASC" );
 		$obj_acervo->setLimite( $this->limite, $this->offset );
+		$obj_acervo->ref_cod_acervo_assunto = $this->ref_cod_assunto_acervo;
 		
 				
 		
@@ -271,6 +286,14 @@ class indice extends clsListagem
 		}
 
 		$this->largura = "100%";
+
+	    $localizacao = new LocalizacaoSistema();
+	    $localizacao->entradaCaminhos( array(
+	         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+	         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+	         ""                                  => "Listagem de obras"
+	    ));
+	    $this->enviaLocalizacao($localizacao->montar());
 	}
 }
 // cria uma extensao da classe base

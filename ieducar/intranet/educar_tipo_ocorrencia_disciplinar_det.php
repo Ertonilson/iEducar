@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Tipo Ocorr&ecirc;ncia Disciplinar" );
 		$this->processoAp = "580";
+		$this->addEstilo("localizacaoSistema");
 	}
 }
 
@@ -64,8 +65,7 @@ class indice extends clsDetalhe
 		$this->pessoa_logada = $_SESSION['id_pessoa'];
 		session_write_close();
 
-		$this->titulo = "Tipo Ocorrencia Disciplinar - Detalhe";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		$this->titulo = "Tipo Ocorr&ecirc;ncia Disciplinar - Detalhe";
 
 		$this->cod_tipo_ocorrencia_disciplinar=$_GET["cod_tipo_ocorrencia_disciplinar"];
 
@@ -120,6 +120,14 @@ class indice extends clsDetalhe
 		}
 		$this->url_cancelar = "educar_tipo_ocorrencia_disciplinar_lst.php";
 		$this->largura = "100%";
+
+		$localizacao = new LocalizacaoSistema();
+	    $localizacao->entradaCaminhos( array(
+	         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+	         "educar_index.php"                  => "i-Educar - Escola",
+	         ""                                  => "Detalhe do tipo de ocorr&ecirc;ncia disciplinar"
+	    ));
+	    $this->enviaLocalizacao($localizacao->montar());
 	}
 }
 

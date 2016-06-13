@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} Uf" );
 		$this->processoAp = "754";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -46,32 +47,32 @@ class indice extends clsDetalhe
 	 * @var int
 	 */
 	var $titulo;
-	
+
 	var $sigla_uf;
 	var $nome;
 	var $geom;
 	var $idpais;
-	
+
 	function Gerar()
 	{
 		@session_start();
 		$this->pessoa_logada = $_SESSION['id_pessoa'];
 		session_write_close();
-		
+
 		$this->titulo = "Uf - Detalhe";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->sigla_uf=$_GET["sigla_uf"];
 
 		$tmp_obj = new clsPublicUf( $this->sigla_uf );
 		$registro = $tmp_obj->detalhe();
-		
+
 		if( ! $registro )
 		{
 			header( "location: public_uf_lst.php" );
 			die();
 		}
-		
+
 		if( class_exists( "clsPais" ) )
 		{
 			$obj_idpais = new clsPais( $registro["idpais"] );
@@ -108,6 +109,13 @@ class indice extends clsDetalhe
 
 		$this->url_cancelar = "public_uf_lst.php";
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         ""                                  => "Detalhe da UF"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 

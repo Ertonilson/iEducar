@@ -53,7 +53,24 @@ class IndexController extends Core_Controller_Page_ListController
     'Sistema de nota' => 'tipoNota',
     'Progressão' => 'tipoProgressao',
     'Média aprovação' => 'media',
+    'Média exame' => 'mediaRecuperacao',
     'Fórmula média' => 'formulaMedia',
     'Fórmula recuperação' => 'formulaRecuperacao'
   );
+
+  protected function _preRender(){
+
+    parent::_preRender();
+
+    Portabilis_View_Helper_Application::loadStylesheet($this, 'intranet/styles/localizacaoSistema.css');
+
+    $localizacao = new LocalizacaoSistema();
+
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Listagem de regras de avalia&ccedil;&otilde;es"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());     
+  }
 }

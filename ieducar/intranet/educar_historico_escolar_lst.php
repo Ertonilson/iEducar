@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Hist&oacute;rico Escolar" );
 		$this->processoAp = "578";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -87,6 +88,7 @@ class indice extends clsListagem
 	var $ref_cod_instituicao;
 	var $ref_cod_escola;
 	var $extra_curricular;
+	var $frequencia;
 
 	function Gerar()
 	{
@@ -107,7 +109,7 @@ class indice extends clsListagem
 			die();
 		}
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$lista_busca = array(
 			"Ano",
@@ -128,10 +130,12 @@ class indice extends clsListagem
 			if (!$this->extra_curricular)
 				$lista_busca[] = "Escola";
 		}
+    $lista_busca = array_merge($lista_busca, array('Curso', 'Série', 'Registro', 'Livro', 'Folha'));
+
 		$this->addCabecalhos($lista_busca);
 
 		$get_escola = true;
-		
+
 		include("include/pmieducar/educar_campo_lista.php");
 
 		// outros Filtros
@@ -155,7 +159,7 @@ class indice extends clsListagem
 		$this->offset = ( $_GET["pagina_{$this->nome}"] ) ? $_GET["pagina_{$this->nome}"]*$this->limite-$this->limite: 0;
 
 		$obj_historico_escolar = new clsPmieducarHistoricoEscolar();
-		$obj_historico_escolar->setOrderby( "ano ASC" );
+		$obj_historico_escolar->setOrderby( "ano, sequencial ASC" );
 		$obj_historico_escolar->setLimite( $this->limite, $this->offset );
 
 		$lista = $obj_historico_escolar->lista(
@@ -180,7 +184,8 @@ class indice extends clsListagem
 			null,
 			$this->ref_cod_instituicao,
 			null,
-			$this->extra_curricular
+			$this->extra_curricular,
+			null
 		);
 
 		$total = $obj_historico_escolar->_total;
@@ -225,6 +230,13 @@ class indice extends clsListagem
 					if (!$this->extra_curricular)
 						$lista_busca[] = "<a href=\"educar_historico_escolar_det.php?ref_cod_aluno={$registro["ref_cod_aluno"]}&sequencial={$registro["sequencial"]}\">{$registro["escola"]}</a>";
 				}
+
+        $lista_busca[] = $registro['nm_curso'];
+        $lista_busca[] = $registro['nm_serie'];
+        $lista_busca[] = $registro['registro'];
+        $lista_busca[] = $registro['livro'];
+        $lista_busca[] = $registro['folha'];
+
 				$this->addLinhas($lista_busca);
 			}
 		}
@@ -239,6 +251,14 @@ class indice extends clsListagem
 		$this->array_botao_url[] = "educar_aluno_det.php?cod_aluno={$this->ref_cod_aluno}";
 
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Listagem de hist&oacute;ricos escolares"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 // cria uma extensao da classe base

@@ -36,6 +36,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} Logradouro" );
 		$this->processoAp = "757";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -98,7 +99,7 @@ class indice extends clsListagem
 		foreach( $_GET AS $var => $val ) // passa todos os valores obtidos no GET para atributos do objeto
 			$this->$var = ( $val === "" ) ? null: $val;
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->addCabecalhos( array(
 			"Tipo",
@@ -262,6 +263,13 @@ class indice extends clsListagem
 		$this->nome_acao = "Novo";
 
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         ""                                  => "Listagem de logradouros"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 // cria uma extensao da classe base
@@ -291,7 +299,7 @@ document.getElementById('idpais').onchange = function()
 function getUf( xml_uf )
 {
 	var campoUf = document.getElementById('sigla_uf');
-	var DOM_array = xml_uf.getElementsByTagName( "uf" );
+	var DOM_array = xml_uf.getElementsByTagName( "estado" );
 
 	if(DOM_array.length)
 	{

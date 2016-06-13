@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Situa&ccedil;&atilde;o" );
 		$this->processoAp = "602";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -106,6 +107,16 @@ class indice extends clsCadastro
 		}
 		$this->url_cancelar = ($retorno == "Editar") ? "educar_situacao_det.php?cod_situacao={$registro["cod_situacao"]}" : "educar_situacao_lst.php";
 		$this->nome_url_cancelar = "Cancelar";
+
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""        => "{$nomeMenu} situa&ccedil;&atilde;o"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+
 		return $retorno;
 	}
 
@@ -216,15 +227,8 @@ class indice extends clsCadastro
 		$obj_permissoes = new clsPermissoes();
 		$obj_permissoes->permissao_cadastra( 602, $this->pessoa_logada, 11,  "educar_situacao_lst.php" );
 
-		if ($this->situacao_padrao == 'on')
-			$this->situacao_padrao = 1;
-		else
-			$this->situacao_padrao = 0;
-
-		if ($this->situacao_emprestada == 'on')
-			$this->situacao_emprestada = 1;
-		else
-			$this->situacao_emprestada = 0;
+    $this->situacao_padrao = is_null($this->situacao_padrao) ? 0 : 1;
+    $this->situacao_emprestada = is_null($this->situacao_emprestada) ? 0 : 1;
 
 		$obj = new clsPmieducarSituacao( null, null, $this->pessoa_logada, $this->nm_situacao, $this->permite_emprestimo, $this->descricao, $this->situacao_padrao, $this->situacao_emprestada, null, null, 1, $this->ref_cod_biblioteca );
 		$cadastrou = $obj->cadastra();
@@ -250,15 +254,8 @@ class indice extends clsCadastro
 		$obj_permissoes = new clsPermissoes();
 		$obj_permissoes->permissao_cadastra( 602, $this->pessoa_logada, 11,  "educar_situacao_lst.php" );
 
-		if ($this->situacao_padrao == 'on')
-			$this->situacao_padrao = 1;
-		else
-			$this->situacao_padrao = 0;
-
-		if ($this->situacao_emprestada == 'on')
-			$this->situacao_emprestada = 1;
-		else
-			$this->situacao_emprestada = 0;
+    $this->situacao_padrao = is_null($this->situacao_padrao) ? 0 : 1;
+    $this->situacao_emprestada = is_null($this->situacao_emprestada) ? 0 : 1;
 
 		$obj = new clsPmieducarSituacao($this->cod_situacao, $this->pessoa_logada, null, $this->nm_situacao, $this->permite_emprestimo, $this->descricao, $this->situacao_padrao, $this->situacao_emprestada, null, null, 1, $this->ref_cod_biblioteca);
 		$editou = $obj->edita();

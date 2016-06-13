@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Exemplar Devolu&ccedil;&atilde;o" );
 		$this->processoAp = "628";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -64,7 +65,7 @@ class indice extends clsDetalhe
 		session_write_close();
 
 		$this->titulo = "Exemplar Devolu&ccedil;&atilde;o - Detalhe";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->cod_emprestimo=$_GET["cod_emprestimo"];
 
@@ -187,10 +188,10 @@ class indice extends clsDetalhe
 		{
 			$this->addDetalhe( array( "Obra", "{$titulo_exemplar}") );
 		}
-		if( $registro["ref_cod_exemplar"] )
-		{
-			$this->addDetalhe( array( "Tombo", "{$registro["ref_cod_exemplar"]}") );
-		}
+
+  	$this->addDetalhe( array( "Código exemplar", "{$registro["ref_cod_exemplar"]}") );
+    $this->addDetalhe( array( "Tombo", "{$det_ref_cod_exemplar["tombo"]}") );
+
 		if( $registro["data_retirada"] )
 		{
 			$this->addDetalhe( array( "Data Retirada", dataFromPgToBr( $registro["data_retirada"], "d/m/Y" ) ) );
@@ -208,6 +209,14 @@ class indice extends clsDetalhe
 
 		$this->url_cancelar = "educar_exemplar_devolucao_lst.php";
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""                                  => "Detalhe do exemplar para devolu&ccedil;&atilde;o"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 

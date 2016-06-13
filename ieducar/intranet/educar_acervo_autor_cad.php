@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Autor" );
 		$this->processoAp = "594";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -81,6 +82,9 @@ class indice extends clsCadastro
 				foreach( $registro AS $campo => $val )	// passa todos os valores obtidos no registro para atributos do objeto
 					$this->$campo = $val;
 
+			$this->nm_autor = stripslashes($this->nm_autor);
+			$this->nm_autor = htmlspecialchars($this->nm_autor);
+
 			$obj_permissoes = new clsPermissoes();
 			if( $obj_permissoes->permissao_excluir( 594, $this->pessoa_logada, 11 ) )
 			{
@@ -105,6 +109,15 @@ class indice extends clsCadastro
 		}
 		$this->url_cancelar = ($retorno == "Editar") ? "educar_acervo_autor_det.php?cod_acervo_autor={$registro["cod_acervo_autor"]}" : "educar_acervo_autor_lst.php";
 		$this->nome_url_cancelar = "Cancelar";
+
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""        => "{$nomeMenu} autor"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 		return $retorno;
 	}
 
@@ -137,6 +150,8 @@ class indice extends clsCadastro
 		 $this->pessoa_logada = $_SESSION['id_pessoa'];
 		@session_write_close();
 
+		$this->nm_autor = addslashes($this->nm_autor);
+
 		$obj_permissoes = new clsPermissoes();
 		$obj_permissoes->permissao_cadastra( 594, $this->pessoa_logada, 11,  "educar_acervo_autor_lst.php" );
 
@@ -161,6 +176,8 @@ class indice extends clsCadastro
 		@session_start();
 		 $this->pessoa_logada = $_SESSION['id_pessoa'];
 		@session_write_close();
+
+		$this->nm_autor = addslashes($this->nm_autor);
 
 		$obj_permissoes = new clsPermissoes();
 		$obj_permissoes->permissao_cadastra( 594, $this->pessoa_logada, 11,  "educar_acervo_autor_lst.php" );

@@ -34,6 +34,12 @@ if (class_exists('clsPmiajudaPagina')) {
   require_once 'include/pmiajuda/clsPmiajudaPagina.inc.php';
 }
 
+require_once 'Portabilis/View/Helper/Application.php';
+require_once 'Portabilis/View/Helper/Inputs.php';
+require_once 'Portabilis/Utils/User.php';
+
+require_once 'include/localizacaoSistema.php';
+
 /**
  * clsCadastro class.
  *
@@ -80,6 +86,7 @@ class clsCadastro extends clsCampos
   var $nome_url_alt;
   var $url_alt;
   var $help_images = FALSE;
+  var $locale = null;
 
   var $array_botao;
   var $array_botao_url;
@@ -112,6 +119,11 @@ class clsCadastro extends clsCampos
   {
     parent::__construct();
     $this->tipoacao = @$_POST['tipoacao'];
+  }
+
+  function enviaLocalizacao($localizao){
+    if($localizao)
+      $this->locale = $localizao;
   }
 
   function PreCadastrar()
@@ -217,6 +229,14 @@ class clsCadastro extends clsCampos
     return FALSE;
   }
 
+  protected function flashMessage() {
+    if (empty($this->mensagem) && isset($_GET['mensagem']) && $_GET['mensagem'] == 'sucesso') {
+      $this->mensagem = 'Registro incluido com sucesso!';
+    }
+
+    return empty($this->mensagem) ? "" : "<p class='form_erro error'>$this->mensagem</p>";
+  }
+
   function RenderHTML()
   {
     $this->_preRender();
@@ -258,8 +278,20 @@ class clsCadastro extends clsCampos
       }
     }
 
+    if ($this->locale){
+
+      $retorno .=  "
+        <table class='tableDetalhe' $width border='0'  cellpadding='0' cellspacing='0'>";
+
+      $retorno .=  "<tr height='10px'>
+                      <td class='fundoLocalizacao' colspan='2'>{$this->locale}</td>
+                    </tr>";
+
+      $retorno .= "</table>";
+    }
+
     $retorno .= "<center>\n<table class='tablecadastro' $width border='0' cellpadding='2' cellspacing='0'>\n";
-    $titulo = "<b>{$this->tipoacao} {$this->titulo_aplication}</b>";
+    $titulo = $this->titulo ? $this->titulo : "<b>{$this->tipoacao} {$this->titulo_aplication}</b>";
 
     /**
      * Adiciona os botoes de help para a pagina atual
@@ -278,7 +310,6 @@ class clsCadastro extends clsCampos
     else {
       $tipo = 'cad';
     }
-
     $barra = $titulo;
 
     // @todo Remover código, funcionalidade não existente.
@@ -300,18 +331,10 @@ class clsCadastro extends clsCampos
 
     $retorno .= "<tr><td class='formdktd' colspan='2' height='24'>{$barra}</td></tr>";
 
-    if (empty($this->mensagem)) {
-      $this->mensagem = $_GET['mensagem'];
-      if ($this->mensagem == 'sucesso') {
-        $this->mensagem = 'Registro incluido com sucesso!';
-      }
-      else {
-        $this->mensagem = '';
-      }
-    }
+    $flashMessage = $this->flashMessage();
 
-    if (!empty($this->mensagem)) {
-      $retorno .=  "<tr><td class='formmdtd' colspan='2' height='24'><span class='form_erro'><b>$this->mensagem</b></span></td></tr>";
+    if (! empty($flashMessage)) {
+      $retorno .=  "<tr><td class='formmdtd' colspan='2' height='24'><div id='flash-container'>{$flashMessage}</div></td></tr>";
     }
 
     if (empty($this->campos)) {
@@ -656,6 +679,8 @@ class clsCadastro extends clsCampos
       $retorno .= "<script type=\"text/javascript\">{$this->executa_script}</script>";
     }
 
+    Portabilis_View_Helper_Application::embedJavascriptToFixupFieldsWidth($this);
+
     return $retorno;
   }
 
@@ -718,5 +743,17 @@ class clsCadastro extends clsCampos
       return sprintf($htmlError, $errors);
     }
     return NULL;
+  }
+
+
+  protected function inputsHelper() {
+    if (! isset($this->_inputsHelper))
+      $this->_inputsHelper = new Portabilis_View_Helper_Inputs($this);
+
+    return $this->_inputsHelper;
+  }
+
+  protected function currentUserId() {
+    return Portabilis_Utils_User::currentUserId();
   }
 }

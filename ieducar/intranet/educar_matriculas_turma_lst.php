@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Matr&iacute;culas Turmas" );
 		$this->processoAp = "659";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -86,9 +87,10 @@ class indice extends clsListagem
 		foreach( $_GET AS $var => $val ) // passa todos os valores obtidos no GET para atributos do objeto
 			$this->$var = ( $val === "" ) ? null: $val;
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$lista_busca = array(
+			"Ano",
 			"Turma",
 			"S&eacute;rie",
 			"Curso"
@@ -128,7 +130,7 @@ class indice extends clsListagem
 		$obj_turma->setOrderby( "nm_turma ASC" );
 		$obj_turma->setLimite( $this->limite, $this->offset );
 
-		$lista = $obj_turma->lista2(
+		$lista = $obj_turma->lista3(
 			$this->ref_cod_turma,
 			null,
 			null,
@@ -221,37 +223,46 @@ class indice extends clsListagem
 				}
 
 				$lista_busca = array(
-					"<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_turma"]}</a>"
+					"<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["ano"]}</a>",
+					"<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_turma"]}</a>"
 				);
 
 				if ($registro["ref_ref_cod_serie"])
-					$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_serie"]}</a>";
+					$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_serie"]}</a>";
 				else
-					$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
+					$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
 
-				$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_curso"]}</a>";
+				$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_curso"]}</a>";
 
 				if ($nivel_usuario == 1)
 				{
 					if ($registro["ref_ref_cod_escola"])
-						$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_escola"]}</a>";
+						$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_escola"]}</a>";
 					else
-						$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
+						$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
 
-					$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_instituicao"]}</a>";
+					$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_instituicao"]}</a>";
 				}
 				else if ($nivel_usuario == 2)
 				{
 					if ($registro["ref_ref_cod_escola"])
-						$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_escola"]}</a>";
+						$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">{$registro["nm_escola"]}</a>";
 					else
-						$lista_busca[] = "<a href=\"educar_matriculas_turma_det.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
+						$lista_busca[] = "<a href=\"educar_matriculas_turma_cad.php?ref_cod_turma={$registro["cod_turma"]}\">-</a>";
 				}
 				$this->addLinhas($lista_busca);
 			}
 		}
 		$this->addPaginador2( "educar_matriculas_turma_lst.php", $total, $_GET, $this->nome, $this->limite );
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Listagem de turmas para enturma&ccedil;&otilde;es"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 // cria uma extensao da classe base

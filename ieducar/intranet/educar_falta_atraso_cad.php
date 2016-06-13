@@ -32,6 +32,7 @@ require_once 'include/clsBase.inc.php';
 require_once 'include/clsCadastro.inc.php';
 require_once 'include/clsBanco.inc.php';
 require_once 'include/pmieducar/geral.inc.php';
+require_once 'Portabilis/Date/Utils.php';
 
 /**
  * clsIndexBase class.
@@ -49,6 +50,7 @@ class clsIndexBase extends clsBase
   {
     $this->SetTitulo($this->_instituicao . ' i-Educar - Falta Atraso');
     $this->processoAp = 635;
+    $this->addEstilo("localizacaoSistema");    
   }
 }
 
@@ -102,7 +104,7 @@ class indice extends clsCadastro
       $registro  = $obj->detalhe();
 
       if ($registro) {
-        // passa todos os valores obtidos no registro para atributos do objeto
+        // passa to$this->data_falta_atraso = Portabilis_Date_Utils::brToPgSQL($this->data_falta_atraso);dos os valores obtidos no registro para atributos do objeto
         foreach ($registro as $campo => $val) {
           $this->$campo = $val;
         }
@@ -124,6 +126,16 @@ class indice extends clsCadastro
       sprintf('educar_falta_atraso_lst.php?ref_cod_servidor=%d&ref_cod_instituicao=%d', $this->ref_cod_servidor, $this->ref_cod_instituicao);
 
     $this->nome_url_cancelar = 'Cancelar';
+
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""        => "{$nomeMenu} falta/atraso do servidor"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+
     return $retorno;
   }
 
@@ -170,6 +182,8 @@ class indice extends clsCadastro
     $this->pessoa_logada = $_SESSION['id_pessoa'];
     @session_write_close();
 
+    $this->data_falta_atraso = Portabilis_Date_Utils::brToPgSQL($this->data_falta_atraso);
+
     $obj_permissoes = new clsPermissoes();
     $obj_permissoes->permissao_cadastra(635, $this->pessoa_logada, 7,
       sprintf('educar_falta_atraso_lst.php?ref_cod_servidor=%d&ref_cod_instituicao=%d',
@@ -183,7 +197,7 @@ class indice extends clsCadastro
     }
     elseif ($this->tipo == 2) {
       $db = new clsBanco();
-      $dia_semana = $db->CampoUnico(sprintf('SELECT EXTRACT (DOW FROM (date "%s") + 1 )', dataToBanco($this->data_falta_atraso)));
+      $dia_semana = $db->CampoUnico(sprintf('(SELECT EXTRACT (DOW FROM date \'%s\') + 1 )', $this->data_falta_atraso));
 
       $obj_ser = new clsPmieducarServidor();
       $horas   = $obj_ser->qtdhoras( $this->ref_cod_servidor, $this->ref_cod_escola, $this->ref_cod_instituicao, $dia_semana );

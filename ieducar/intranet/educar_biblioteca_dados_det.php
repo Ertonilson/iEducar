@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Dados Biblioteca" );
 		$this->processoAp = "629";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -69,16 +70,55 @@ class indice extends clsDetalhe
 		session_write_close();
 
 		$this->titulo = "Dados Biblioteca - Detalhe";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->cod_biblioteca=$_GET["cod_biblioteca"];
 
 		$tmp_obj = new clsPmieducarBiblioteca( $this->cod_biblioteca );
 		$registro = $tmp_obj->detalhe();
+                
+                if( class_exists( "clsPmieducarInstituicao" ) )
+		{
+			$obj_ref_cod_instituicao = new clsPmieducarInstituicao( $registro["ref_cod_instituicao"] );
+			$det_ref_cod_instituicao = $obj_ref_cod_instituicao->detalhe();
+			$registro["ref_cod_instituicao"] = $det_ref_cod_instituicao["nm_instituicao"];
+		}
+		else
+		{
+			$registro["ref_cod_instituicao"] = "Erro na geracao";
+			echo "<!--\nErro\nClasse nao existente: clsPmieducarInstituicao\n-->";
+		}
 
+		if( class_exists( "clsPmieducarEscola" ) )
+		{
+			$obj_ref_cod_escola = new clsPmieducarEscola( $registro["ref_cod_escola"] );
+			$det_ref_cod_escola = $obj_ref_cod_escola->detalhe();
+			$idpes = $det_ref_cod_escola["ref_idpes"];
+			if ($idpes)
+			{
+				$obj_escola = new clsPessoaJuridica( $idpes );
+				$obj_escola_det = $obj_escola->detalhe();
+				$registro["ref_cod_escola"] = $obj_escola_det["fantasia"];
+			}
+			else
+			{
+				$obj_escola = new clsPmieducarEscolaComplemento( $registro["ref_cod_escola"] );
+				$obj_escola_det = $obj_escola->detalhe();
+				$registro["ref_cod_escola"] = $obj_escola_det["nm_escola"];
+			}
+		}
+		else
+		{
+			$registro["ref_cod_escola"] = "Erro na geracao";
+			echo "<!--\nErro\nClasse nao existente: clsPmieducarEscola\n-->";
+		}
+               
 		$obj_permissoes = new clsPermissoes();
 		$nivel_usuario = $obj_permissoes->nivel_acesso($this->pessoa_logada);
-		if($nivel_usuario <= 3)
+		
+                
+                
+                if($nivel_usuario <= 3)
 			$permitido = true;
 		else{
 			$obj_usuario_bib = new clsPmieducarBibliotecaUsuario();
@@ -99,6 +139,22 @@ class indice extends clsDetalhe
 		{
 			header( "location: educar_biblioteca_dados_lst.php" );
 			die();
+		}
+                
+                if ($nivel_usuario == 1)
+		{
+			if( $registro["ref_cod_instituicao"] )
+			{
+				$this->addDetalhe( array( "Institui&ccedil;&atilde;o", "{$registro["ref_cod_instituicao"]}") );
+			}
+		}
+                
+                if ($nivel_usuario == 1 || $nivel_usuario == 2)
+		{
+			if( $registro["ref_cod_escola"] )
+			{
+				$this->addDetalhe( array( "Escola", "{$registro["ref_cod_escola"]}") );
+			}
 		}
 
 		if( $registro["nm_biblioteca"] )
@@ -214,6 +270,14 @@ class indice extends clsDetalhe
 
 		$this->url_cancelar = "educar_biblioteca_dados_lst.php";
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""                                  => "Detalhe dos dados da biblioteca"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 

@@ -51,6 +51,7 @@ class clsIndexBase extends clsBase
   {
     $this->SetTitulo($this->_instituicao . ' i-Educar - Servidor');
     $this->processoAp = 635;
+    $this->addEstilo("localizacaoSistema");
   }
 }
 
@@ -192,6 +193,15 @@ class indice extends clsCadastro
       "educar_servidor_lst.php";
 
     $this->nome_url_cancelar = 'Cancelar';
+
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""        => "{$nomeMenu} servidor"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());    
     return $retorno;
   }
 
@@ -320,7 +330,7 @@ class indice extends clsCadastro
     }
 
     $this->campoHora('carga_horaria', 'Carga Horária', $hora_formatada, TRUE,
-      'Número de horas deve ser maior que horas alocadas');
+      'Número de horas deve ser maior que horas alocadas','',FALSE);
 
     // Dados do docente no Inep/Educacenso.
     if ($this->docente) {

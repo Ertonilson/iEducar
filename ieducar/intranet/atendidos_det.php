@@ -32,6 +32,7 @@ require_once 'include/clsBase.inc.php';
 require_once 'include/clsDetalhe.inc.php';
 require_once 'include/clsBanco.inc.php';
 require_once 'include/pessoa/clsCadastroRaca.inc.php';
+require_once 'include/pessoa/clsCadastroFisicaFoto.inc.php';
 require_once 'include/pessoa/clsCadastroFisicaRaca.inc.php';
 
 require_once 'App/Model/ZonaLocalizacao.php';
@@ -52,6 +53,7 @@ class clsIndex extends clsBase
   {
     $this->SetTitulo($this->_instituicao . ' Pessoa');
     $this->processoAp = 43;
+    $this->addEstilo('localizacaoSistema');
   }
 }
 
@@ -86,7 +88,15 @@ class indice extends clsDetalhe
       'ddd_fax', 'fone_fax', 'email', 'url', 'tipo', 'sexo', 'zona_localizacao'
     );
 
-    $this->addDetalhe(array('Nome', $detalhe['nome']));
+
+    $objFoto = new clsCadastroFisicaFoto($cod_pessoa);
+    $caminhoFoto = $objFoto->detalhe();
+    if ($caminhoFoto!=false)
+      $this->addDetalhe(array('Nome', $detalhe['nome'].'
+                                  <p><img height="117" src="'.$caminhoFoto['caminho'].'"/></p>'));
+    else
+      $this->addDetalhe(array('Nome', $detalhe['nome']));
+     
     $this->addDetalhe(array('CPF', int2cpf($detalhe['cpf'])));
 
     if ($detalhe['data_nasc']) {
@@ -183,6 +193,13 @@ class indice extends clsDetalhe
     $this->url_cancelar = 'atendidos_lst.php';
 
     $this->largura = '100%';
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         ""                                  => "Detalhe da pessoa f&iacute;sica"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());    
   }
 }
 

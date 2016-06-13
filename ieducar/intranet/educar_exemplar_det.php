@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Exemplar" );
 		$this->processoAp = "606";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -68,7 +69,7 @@ class indice extends clsDetalhe
 		session_write_close();
 
 		$this->titulo = "Exemplar - Detalhe";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->cod_exemplar=$_GET["cod_exemplar"];
 
@@ -129,11 +130,9 @@ class indice extends clsDetalhe
 			echo "<!--\nErro\nClasse nao existente: clsPmieducarSituacao\n-->";
 		}
 
+		$this->addDetalhe(array("Código", "{$registro["cod_exemplar"]}"));
+		$this->addDetalhe(array("Tombo",  "{$registro["tombo"]}"));
 
-		if( $registro["cod_exemplar"] )
-		{
-			$this->addDetalhe( array( "Tombo", "{$registro["cod_exemplar"]}") );
-		}
 		if( $registro["ref_cod_acervo"] )
 		{
 			$this->addDetalhe( array( "Obra Refer&eacute;ncia", "{$registro["ref_cod_acervo"]}") );
@@ -182,6 +181,14 @@ class indice extends clsDetalhe
 
 		$this->url_cancelar = "educar_exemplar_lst.php";
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_biblioteca_index.php"                  => "i-Educar - Biblioteca",
+         ""                                  => "Detalhe do exemplar"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 

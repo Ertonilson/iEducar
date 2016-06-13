@@ -28,6 +28,7 @@ $desvio_diretorio = "";
 require_once ("include/clsBase.inc.php");
 require_once ("include/clsListagem.inc.php");
 require_once ("include/clsBanco.inc.php");
+require_once 'include/localizacaoSistema.php';
 
 class clsIndex extends clsBase
 {
@@ -36,6 +37,7 @@ class clsIndex extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} Diária Grupo" );
 		$this->processoAp = "297";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -44,7 +46,7 @@ class indice extends clsListagem
 	function Gerar()
 	{
 		$this->titulo = "Diária Grupo";
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 	
 		$this->addCabecalhos( array( "Grupo" ) );
 		
@@ -79,6 +81,14 @@ class indice extends clsListagem
 		$this->nome_acao = "Novo";
 
 		$this->largura = "100%";
+
+	    $localizacao = new LocalizacaoSistema();
+	    $localizacao->entradaCaminhos( array(
+	         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+	         "educar_index.php"                  => "i-Educar - Escola",
+	         ""                                  => "Listagem de grupos de di&aacute;rias"
+	    ));
+	    $this->enviaLocalizacao($localizacao->montar());
 	}
 }
 
@@ -86,6 +96,7 @@ class indice extends clsListagem
 $pagina = new clsIndex();
 
 $miolo = new indice();
+
 $pagina->addForm( $miolo );
 
 $pagina->MakeAll();

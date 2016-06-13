@@ -29,6 +29,7 @@
  */
 
 require_once 'Core/Controller/Page/Abstract.php';
+require_once 'include/localizacaoSistema.php';
 
 /**
  * clsDetalhe class.
@@ -52,6 +53,7 @@ class clsDetalhe extends Core_Controller_Page_Abstract
   var $bannerClose = FALSE;
   var $largura;
   var $detalhe = array();
+  var $locale = null;
 
   var $url_novo;
   var $caption_novo = "Novo";
@@ -84,6 +86,11 @@ class clsDetalhe extends Core_Controller_Page_Abstract
 
   function addDetalhe($detalhe) {
     $this->detalhe[] = $detalhe;
+  }
+
+  function enviaLocalizacao($localizao){
+    if($localizao)
+      $this->locale = $localizao;
   }
 
   function Gerar() {
@@ -145,6 +152,18 @@ class clsDetalhe extends Core_Controller_Page_Abstract
       }
     }
 
+    if ($this->locale){
+
+      $retorno .=  "
+        <table class='tableDetalhe' $width border='0'  cellpadding='0' cellspacing='0'>";
+
+      $retorno .=  "<tr height='10px'>
+                      <td class='fundoLocalizacao' colspan='2'>{$this->locale}</td>
+                    </tr>";
+
+      $retorno .= "</table>";
+    }
+
     $retorno .= "
       <!-- detalhe begin -->
       <table class='tableDetalhe' $width border='0' cellpadding='2' cellspacing='2'>
@@ -156,35 +175,51 @@ class clsDetalhe extends Core_Controller_Page_Abstract
     if (empty($this->detalhe)) {
       $retorno .= "<tr><td class='tableDetalheLinhaSim' colspan='2'>N&atilde;o h&aacute; informa&ccedil;&atilde;o a ser apresentada.</td></tr>\n";
     }
-    else {
-      if (is_array($this->detalhe)) {
+    else
+    {
+      if (is_array($this->detalhe))
+      {
         reset($this->detalhe);
 
         $campo_anterior = "";
         $md = TRUE;
 
-        foreach ($this->detalhe as $pardetalhe) {
-          $campo = $pardetalhe[0].":";
-          $texto = $pardetalhe[1];
+        foreach ($this->detalhe as $pardetalhe)
+        {
+          if (is_array($pardetalhe))
+          {
+            $campo = $pardetalhe[0].":";
+            $texto = $pardetalhe[1];
 
-          if ($campo == $campo_anterior) {
-            $campo = "";
-          }
-          else {
-            $campo_anterior = $campo;
-            $md = !$md;
-          }
-
-          if ($campo == "-:") {
-            if (empty($texto)) {
-              $texto = '&nbsp;';
+            if ($campo == $campo_anterior)
+            {
+              $campo = "";
+            }
+            else
+            {
+              $campo_anterior = $campo;
+              $md = !$md;
             }
 
-            $retorno .= "<tr><td colspan='2' class='' width='20%'><span class='form'><b>$texto</b></span></td></tr>\n";
+            if ($campo == "-:")
+            {
+              if (empty($texto))
+              {
+                $texto = '&nbsp;';
+              }
+              $retorno .= "<tr><td colspan='2' class='' width='20%'><span class='form'><b>$texto</b></span></td></tr>\n";
+            }
+            else
+            {
+              $classe = $md ? 'formmdtd' : 'formlttd';
+              $retorno .= "<tr><td class='$classe' width='20%'>$campo</td><td class='$classe'>$texto</td></tr>\n";
+            }
           }
-          else {
-            $classe = $md ? 'formmdtd' : 'formlttd';
-            $retorno .= "<tr><td class='$classe' width='20%'>$campo</td><td class='$classe'>$texto</td></tr>\n";
+          else
+          {
+
+            $retorno .= "<tr><td colspan='2'>$pardetalhe</td></tr>";
+
           }
         }
       }

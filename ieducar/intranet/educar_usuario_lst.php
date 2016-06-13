@@ -36,6 +36,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} i-Educar - Usu&aacute;rio" );
 		$this->processoAp = "555";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -93,7 +94,7 @@ class indice extends clsListagem
 		foreach( $_GET AS $var => $val ) // passa todos os valores obtidos no GET para atributos do objeto
 			$this->$var = ( $val === "" ) ? null: $val;
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->addCabecalhos( array(
 			"Usu&aacute;rio",
@@ -122,7 +123,7 @@ class indice extends clsListagem
 		{
 			$objTemp = new clsPmieducarTipoUsuario();
 			$objTemp->setOrderby('nm_tipo ASC');
-			$lista = $objTemp->lista();
+			$lista = $objTemp->lista(null,null,null,null,null,null,null,null,1);
 			if ( is_array( $lista ) && count( $lista ) )
 			{
 				foreach ( $lista as $registro )
@@ -262,6 +263,14 @@ class indice extends clsListagem
 			$this->nome_acao = "Novo";
 		}
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Listagem de usu&aacute;rios"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 // cria uma extensao da classe base

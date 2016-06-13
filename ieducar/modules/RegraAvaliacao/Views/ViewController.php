@@ -54,10 +54,24 @@ class ViewController extends Core_Controller_Page_ViewController
     'Tabela de arredondamento' => 'tabelaArredondamento',
     'Progressão' => 'tipoProgressao',
     'Média para promoção' => 'media',
+    'Média exame para promoção' => 'mediaRecuperacao',
     'Fórmula de cálculo de média final' => 'formulaMedia',
     'Fórmula de cálculo de recuperação' => 'formulaRecuperacao',
     'Porcentagem presença' => 'porcentagemPresenca',
     'Parecer descritivo' => 'parecerDescritivo',
     'Tipo de presença' => 'tipoPresenca'
   );
+  protected function _preRender(){
+
+    Portabilis_View_Helper_Application::loadStylesheet($this, 'intranet/styles/localizacaoSistema.css');
+
+    $localizacao = new LocalizacaoSistema();
+
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""                                  => "Detalhe da regra de avalia&ccedil;&otilde;o"             
+    ));
+    $this->enviaLocalizacao($localizacao->montar());     
+  }  
 }

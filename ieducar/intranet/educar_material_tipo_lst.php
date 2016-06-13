@@ -28,6 +28,7 @@ require_once ("include/clsBase.inc.php");
 require_once ("include/clsListagem.inc.php");
 require_once ("include/clsBanco.inc.php");
 require_once( "include/pmieducar/geral.inc.php" );
+require_once ("include/localizacaoSistema.php");
 
 class clsIndexBase extends clsBase
 {
@@ -40,6 +41,7 @@ class clsIndexBase extends clsBase
 			$this->SetTitulo( "{$this->_instituicao} i-Educar - Tipo Material Did&aacute;tico" );
 
 		$this->processoAp = "563";
+        $this->addEstilo( "localizacaoSistema" );
 	}
 }
 
@@ -101,7 +103,7 @@ class indice extends clsListagem
 		else
 			$this->titulo = "Tipo Material - Listagem";
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$lista_busca = array(
 			"Material Did&aacute;tico"
@@ -201,6 +203,14 @@ class indice extends clsListagem
 		//**
 
 		$this->largura = "100%";
+
+	    $localizacao = new LocalizacaoSistema();
+	    $localizacao->entradaCaminhos( array(
+	         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+	         "educar_index.php"                  => "i-Educar - Escola",
+	         ""                                  => "Listagem de tipos de materiais"
+	    ));
+	    $this->enviaLocalizacao($localizacao->montar());
 
 	}
 }

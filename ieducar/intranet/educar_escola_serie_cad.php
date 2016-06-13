@@ -51,6 +51,7 @@ class clsIndexBase extends clsBase
   {
     $this->SetTitulo($this->_instituicao . ' i-Educar - Escola S&eacute;rie');
     $this->processoAp = 585;
+    $this->addEstilo("localizacaoSistema");
   }
 }
 
@@ -138,6 +139,15 @@ class indice extends clsCadastro
         $registro['ref_cod_escola'], $registro['ref_cod_serie']) :
       'educar_escola_serie_lst.php';
 
+    $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""        => "{$nomeMenu} v&iacute;nculo entre escola e s&eacute;rie"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+
     $this->nome_url_cancelar = 'Cancelar';
     return $retorno;
   }
@@ -203,14 +213,18 @@ class indice extends clsCadastro
     $this->hora_fim_intervalo    = substr($this->hora_fim_intervalo, 0, 5);
 
     // hora
-    $this->campoHora('hora_inicial', 'Hora Inicial', $this->hora_inicial, TRUE);
-    $this->campoHora('hora_final', 'Hora Final', $this->hora_final, TRUE);
+    $this->campoHora('hora_inicial', 'Hora Inicial', $this->hora_inicial, FALSE);
+    $this->campoHora('hora_final', 'Hora Final', $this->hora_final, FALSE);
 
     $this->campoHora('hora_inicio_intervalo', 'Hora In&iacute;cio Intervalo',
-      $this->hora_inicio_intervalo, TRUE);
+      $this->hora_inicio_intervalo, FALSE);
 
     $this->campoHora('hora_fim_intervalo', 'Hora Fim Intervalo',
-      $this->hora_fim_intervalo, TRUE);
+      $this->hora_fim_intervalo, FALSE);
+
+		$this->campoCheck("bloquear_enturmacao_sem_vagas", "Bloquear enturmação após atingir limite de vagas", $this->bloquear_enturmacao_sem_vagas);
+
+		$this->campoCheck("bloquear_cadastro_turma_para_serie_com_vagas", "Bloquear cadastro de novas turmas antes de atingir limite de vagas (no mesmo turno)", $this->bloquear_cadastro_turma_para_serie_com_vagas);
 
     $this->campoQuebra();
 
@@ -250,6 +264,11 @@ class indice extends clsCadastro
         $conteudo .= '  <span style="display: block; float: left">Usar padrão do componente?</span>';
         $conteudo .= '</div>';
         $conteudo .= '<br style="clear: left" />';
+        $conteudo .= '<div style="margin-bottom: 10px; float: left">';
+        $conteudo .= "  <label style='display: block; float: left; width: 350px;'><input type='checkbox' name='CheckTodos' onClick='marcarCheck(".'"disciplinas[]"'.");'/>Marcar Todos</label>";
+        $conteudo .= "  <label style='display: block; float: left; width: 100px;'><input type='checkbox' name='CheckTodos2' onClick='marcarCheck(".'"usar_componente[]"'.");';/>Marcar Todos</label>";
+        $conteudo .= '</div>';
+        $conteudo .= '<br style="clear: left" />';         
 
         foreach ($lista as $registro) {
           $checked = '';
@@ -272,7 +291,8 @@ class indice extends clsCadastro
           $conteudo .= '<div style="margin-bottom: 10px; float: left">';
           $conteudo .= "  <label style='display: block; float: left; width: 250px'><input type=\"checkbox\" $checked name=\"disciplinas[$registro->id]\" id=\"disciplinas[]\" value=\"{$registro->id}\">{$registro}</label>";
           $conteudo .= "  <label style='display: block; float: left; width: 100px;'><input type='text' name='carga_horaria[$registro->id]' value='{$cargaHoraria}' size='5' maxlength='7'></label>";
-          $conteudo .= "  <label style='display: block; float: left'><input type='checkbox' name='usar_componente[$registro->id]' value='1' ". ($usarComponente == TRUE ? $checked : '') .">($cargaComponente h)</label>";
+          $conteudo .= "  <label style='display: block; float: left'><input type='checkbox' id='usar_componente[]' name='usar_componente[$registro->id]' value='1' ". ($usarComponente == TRUE ? $checked : '') .">($cargaComponente h)</label>";
+
           $conteudo .= '</div>';
           $conteudo .= '<br style="clear: left" />';
 
@@ -326,10 +346,13 @@ class indice extends clsCadastro
       return FALSE;
     }
 
+    $this->bloquear_enturmacao_sem_vagas = is_null($this->bloquear_enturmacao_sem_vagas) ? 0 : 1;
+    $this->bloquear_cadastro_turma_para_serie_com_vagas = is_null($this->bloquear_cadastro_turma_para_serie_com_vagas) ? 0 : 1;
+
     $obj = new clsPmieducarEscolaSerie($this->ref_cod_escola, $this->ref_cod_serie,
       $this->pessoa_logada, $this->pessoa_logada, $this->hora_inicial,
       $this->hora_final, NULL, NULL, 1, $this->hora_inicio_intervalo,
-      $this->hora_fim_intervalo);
+      $this->hora_fim_intervalo, $this->bloquear_enturmacao_sem_vagas, $this->bloquear_cadastro_turma_para_serie_com_vagas);
 
     if ($obj->existe()) {
       $cadastrou = $obj->edita();
@@ -399,9 +422,12 @@ class indice extends clsCadastro
       return FALSE;
     }
 
+    $this->bloquear_enturmacao_sem_vagas = is_null($this->bloquear_enturmacao_sem_vagas) ? 0 : 1;
+    $this->bloquear_cadastro_turma_para_serie_com_vagas = is_null($this->bloquear_cadastro_turma_para_serie_com_vagas) ? 0 : 1;
+
     $obj = new clsPmieducarEscolaSerie($this->ref_cod_escola, $this->ref_cod_serie,
       $this->pessoa_logada, NULL, $this->hora_inicial, $this->hora_final,
-      NULL, NULL, 1, $this->hora_inicio_intervalo, $this->hora_fim_intervalo);
+      NULL, NULL, 1, $this->hora_inicio_intervalo, $this->hora_fim_intervalo, $this->bloquear_enturmacao_sem_vagas, $this->bloquear_cadastro_turma_para_serie_com_vagas);
 
     $editou = $obj->edita();
     $obj = new clsPmieducarEscolaSerieDisciplina($this->ref_cod_serie,
@@ -524,6 +550,11 @@ function getDisciplina(xml_disciplina)
     conteudo += '  <label span="display: block; float: left">Usar padrão do componente?</span>';
     conteudo += '</div>';
     conteudo += '<br style="clear: left" />';
+    conteudo += '<div style="margin-bottom: 10px; float: left">';
+    conteudo += "  <label style='display: block; float: left; width: 350px;'><input type='checkbox' name='CheckTodos' onClick='marcarCheck("+'"disciplinas[]"'+");'/>Marcar Todos</label>";
+    conteudo += "  <label style='display: block; float: left; width: 100px;'><input type='checkbox' name='CheckTodos2' onClick='marcarCheck("+'"usar_componente[]"'+");';/>Marcar Todos</label>";
+    conteudo += '</div>';
+    conteudo += '<br style="clear: left" />';    
 
     for (var i = 0; i < DOM_array.length; i++) {
       id = DOM_array[i].getAttribute("cod_disciplina");
@@ -531,7 +562,7 @@ function getDisciplina(xml_disciplina)
       conteudo += '<div style="margin-bottom: 10px; float: left">';
       conteudo += '  <label style="display: block; float: left; width: 250px;"><input type="checkbox" name="disciplinas['+ id +']" id="disciplinas[]" value="'+ id +'">'+ DOM_array[i].firstChild.data +'</label>';
       conteudo += '  <label style="display: block; float: left; width: 100px;"><input type="text" name="carga_horaria['+ id +']" value="" size="5" maxlength="7"></label>';
-      conteudo += '  <label style="display: block; float: left"><input type="checkbox" name="usar_componente['+ id +']" value="1">('+ DOM_array[i].getAttribute("carga_horaria") +' h)</label>';
+      conteudo += '  <label style="display: block; float: left"><input type="checkbox" id="usar_componente[]" name="usar_componente['+ id +']" value="1">('+ DOM_array[i].getAttribute("carga_horaria") +' h)</label>';    
       conteudo += '</div>';
       conteudo += '<br style="clear: left" />';
     }
@@ -614,4 +645,28 @@ function atualizaLstSerie(xml)
     campoSerie.disabled = true;
   }
 }
+
+function marcarCheck(idValue) {
+    // testar com formcadastro
+    var contaForm = document.formcadastro.elements.length;
+    var campo = document.formcadastro;
+    var i;
+    if (idValue == 'disciplinas[]'){
+      for (i=0; i<contaForm; i++) {
+          if (campo.elements[i].id == idValue) {
+
+              campo.elements[i].checked = campo.CheckTodos.checked;
+          }
+      }
+    }else {
+      for (i=0; i<contaForm; i++) {
+          if (campo.elements[i].id == idValue) {
+
+              campo.elements[i].checked = campo.CheckTodos2.checked;
+           }
+       }
+
+    }
+     
+} 
 </script>

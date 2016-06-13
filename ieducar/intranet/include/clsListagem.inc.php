@@ -34,6 +34,11 @@ if (class_exists('clsPmiajudaPagina')) {
   require_once 'include/pmiajuda/clsPmiajudaPagina.inc.php';
 }
 
+require_once 'Portabilis/View/Helper/Application.php';
+require_once 'Portabilis/View/Helper/Inputs.php';
+
+require_once 'include/localizacaoSistema.php';
+
 define('alTopLeft', 'valign=top align=left');
 define('alTopCenter', 'valign=top align=center');
 define('alTopRight', 'valign=top align=right');
@@ -77,6 +82,8 @@ class clsListagem extends clsCampos
   var $funcAcao = '';
   var $funcAcaoNome = '';
   var $rotulo_anterior;
+  var $locale = null;
+  var $appendInTop = false;
 
   var $array_botao;
   var $array_botao_url;
@@ -95,6 +102,8 @@ class clsListagem extends clsCampos
   var $ordenacao;
   var $campos_ordenacao;
   var $fonte;
+
+  var $exibirBotaoSubmit = true;
 
   function Gerar()
   {
@@ -115,6 +124,13 @@ class clsListagem extends clsCampos
     }
 
     $this->bannerClose = $boolFechaBanner;
+  }
+
+  function enviaLocalizacao($localizao, $appendInTop = FALSE){
+    if($localizao)
+      $this->locale = $localizao;
+
+    $this->appendInTop = $appendInTop;
   }
 
   function addCabecalhos($coluna)
@@ -247,7 +263,7 @@ class clsListagem extends clsCampos
       'pos_atual', -1, TRUE);
 
     return NULL;
-  }
+  } 
 
   function RenderHTML()
   {
@@ -272,6 +288,18 @@ class clsListagem extends clsCampos
     $retorno .= $this->MakeFormat();
     $retorno .= '</script>';
 
+    if ($this->locale && $this->appendInTop){
+
+      $retorno .=  "
+        <table class='tablelistagem' id='tableLocalizacao'width='100%' border='0'  cellpadding='0' cellspacing='0'>";
+
+      $retorno .=  "<tr height='10px'>
+                      <td class='fundoLocalizacao' colspan='2'>{$this->locale}</td>
+                    </tr>";
+
+      $retorno .= "</table>";
+    }    
+
     if ($this->campos) {
       $width = empty($this->largura) ? '' : "width='$this->largura'";
 
@@ -293,6 +321,14 @@ class clsListagem extends clsCampos
       else {
         $tipo = 'cad';
       }
+      
+      $server = $_SERVER['SERVER_NAME'];
+      $endereco = $_SERVER ['REQUEST_URI'];
+      $enderecoPagina = $_SERVER['PHP_SELF'];
+
+      $server = $_SERVER['SERVER_NAME'];
+      $endereco = $_SERVER ['REQUEST_URI'];
+      $enderecoPagina = $_SERVER['PHP_SELF'];
 
       $barra = '<b>Filtros de busca</b>';
 
@@ -327,7 +363,7 @@ class clsListagem extends clsCampos
           }
         }
 
-        $janela .=  "<tr><td class='formdktd' colspan='2' height='24'>{$barra}</td></tr>";
+        $janela .= "<tr><td class='formdktd' colspan='2' height='24'>{$barra}</td></tr>";
 
         if (empty($this->campos)) {
           $janela .=  "<tr><td class='formlttd' colspan='2'><span class='form'>N&atilde;o existem campos definidos para o formul&aacute;rio</span></td></tr>";
@@ -377,6 +413,18 @@ class clsListagem extends clsCampos
           }
         }
 
+        if ($this->locale && !$this->appendInTop){
+
+          $retorno .=  "
+            <table class='tablelistagem' $width border='0'  cellpadding='0' cellspacing='0'>";
+
+          $retorno .=  "<tr height='10px'>
+                          <td class='fundoLocalizacao' colspan='2'>{$this->locale}</td>
+                        </tr>";
+
+          $retorno .= "</table>";
+        }
+
         $retorno .=  "
           <table class='tablelistagem' $width border='0' cellpadding='2' cellspacing='1'>";
 
@@ -413,11 +461,13 @@ class clsListagem extends clsCampos
 
         $retorno .=  "</script>";
 
-        if ($this->botao_submit) {
-          $retorno .=  "&nbsp;<input type='submit' class='botaolistagem' value='busca' id='botao_busca'>&nbsp;";
-        }
-        else {
-          $retorno .=  "&nbsp;<input type='button' class='botaolistagem' onclick='javascript:acao{$this->funcAcaoNome}();' value='busca' id='botao_busca'>&nbsp;";
+        if ($this->exibirBotaoSubmit) {
+          if ($this->botao_submit) {
+            $retorno .=  "&nbsp;<input type='submit' class='botaolistagem' value='busca' id='botao_busca'>&nbsp;";
+          }
+          else {
+            $retorno .=  "&nbsp;<input type='button' class='botaolistagem' onclick='javascript:acao{$this->funcAcaoNome}();' value='busca' id='botao_busca'>&nbsp;";
+          }
         }
 
         $retorno .=  "
@@ -439,6 +489,18 @@ class clsListagem extends clsCampos
     }
 
     $this->method = 'POST';
+
+    if ($this->locale && !$this->campos && !$this->appendInTop){
+
+      $retorno .=  "
+        <table class='tablelistagem' $width border='0'  cellpadding='0' cellspacing='0'>";
+
+      $retorno .=  "<tr height='10px'>
+                      <td class='fundoLocalizacao linkpreto' style='background-color: white;' colspan='2'>{$this->locale}</td>
+                    </tr>";
+
+      $retorno .= "</table>";
+    }   
 
     $retorno .=  "
         <form name=\"form_resultado\" id=\"form_resultado\" method=\"POST\" action=\"\">
@@ -725,6 +787,8 @@ class clsListagem extends clsCampos
       ";
     }
 
+    Portabilis_View_Helper_Application::embedJavascriptToFixupFieldsWidth($this);
+
     return $retorno;
   }
 
@@ -736,5 +800,12 @@ class clsListagem extends clsCampos
   function erro($msg, $redir = 'index.php')
   {
     die("<div style='width: 300px; height: 100px; font: 700 11px Arial,Helv,Sans; background-color: #f6f6f6; color: #e11; position: absolute; left: 50%; top: 50%; margin-top: -20px; margin-left: -100px; text-align: center; border: solid 1px #a1a1f1;'>{$msg}</div><script>setTimeout('window.location=\'$redir\'',5000);</script>");
+  }
+
+  public function inputsHelper() {
+    if (! isset($this->_inputsHelper))
+      $this->_inputsHelper = new Portabilis_View_Helper_Inputs($this);
+
+    return $this->_inputsHelper;
   }
 }

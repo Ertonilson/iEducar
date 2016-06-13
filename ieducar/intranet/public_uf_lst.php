@@ -35,6 +35,7 @@ class clsIndexBase extends clsBase
 	{
 		$this->SetTitulo( "{$this->_instituicao} Uf" );
 		$this->processoAp = "754";
+		$this->addEstilo('localizacaoSistema');
 	}
 }
 
@@ -84,7 +85,7 @@ class indice extends clsListagem
 		foreach( $_GET AS $var => $val ) // passa todos os valores obtidos no GET para atributos do objeto
 			$this->$var = ( $val === "" ) ? null: $val;
 
-		$this->addBanner( "imagens/nvp_top_intranet.jpg", "imagens/nvp_vert_intranet.jpg", "Intranet" );
+		
 
 		$this->addCabecalhos( array(
 			"Nome",
@@ -98,9 +99,9 @@ class indice extends clsListagem
 		{
 			$objTemp = new clsPais();
 			$lista = $objTemp->lista( false, false, false, false, false, "nome ASC" );
-			if ( is_array( $lista ) && count( $lista ) ) 
+			if ( is_array( $lista ) && count( $lista ) )
 			{
-				foreach ( $lista as $registro ) 
+				foreach ( $lista as $registro )
 				{
 					$opcoes["{$registro['idpais']}"] = "{$registro['nome']}";
 				}
@@ -129,7 +130,8 @@ class indice extends clsListagem
 		$lista = $obj_uf->lista(
 			$this->nome,
 			$this->geom,
-			$this->idpais
+			$this->idpais,
+			$this->sigla_uf
 		);
 
 		$total = $obj_uf->_total;
@@ -152,6 +154,13 @@ class indice extends clsListagem
 		$this->nome_acao = "Novo";
 
 		$this->largura = "100%";
+
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         ""                                  => "Listagem de UFs"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());		
 	}
 }
 // cria uma extensao da classe base

@@ -33,6 +33,9 @@ header('Content-type: text/xml; charset=ISO-8859-1');
 require_once 'include/clsBanco.inc.php';
 require_once 'include/funcoes.inc.php';
 
+require_once 'Portabilis/Utils/DeprecatedXmlApi.php';
+Portabilis_Utils_DeprecatedXmlApi::returnEmptyQueryUnlessUserIsLoggedIn();
+
 echo "<?xml version=\"1.0\" encoding=\"ISO-8859-15\"?>\n<query xmlns=\"sugestoes\">\n";
 
 $componentes = array();
@@ -54,8 +57,13 @@ if (is_numeric($_GET['cur']) || is_numeric($_GET['ser'])) {
 if (is_numeric($_GET['esc']) && is_numeric($_GET['ser'])) {
   require_once 'App/Model/IedFinder.php';
 
-  $componentes = App_Model_IedFinder::getEscolaSerieDisciplina($_GET['ser'],
-    $_GET['esc']);
+  try {
+    $componentes = App_Model_IedFinder::getEscolaSerieDisciplina($_GET['ser'], $_GET['esc']);
+  } catch (Exception $e) {
+    echo '<disciplina>Erro: ' . $e->getMessage() . '</disciplina>';
+    echo "</query>";
+    die();
+  }
 }
 
 foreach ($componentes as $componente) {

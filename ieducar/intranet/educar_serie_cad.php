@@ -50,6 +50,7 @@ class clsIndexBase extends clsBase
   {
     $this->SetTitulo($this->_instituicao . ' i-Educar - S&eacute;rie');
     $this->processoAp = '583';
+    $this->addEstilo("localizacaoSistema");
   }
 }
 
@@ -129,6 +130,15 @@ class indice extends clsCadastro
       "educar_serie_det.php?cod_serie={$registro["cod_serie"]}" :
       "educar_serie_lst.php";
 
+      $nomeMenu = $retorno == "Editar" ? $retorno : "Cadastrar";
+    $localizacao = new LocalizacaoSistema();
+    $localizacao->entradaCaminhos( array(
+         $_SERVER['SERVER_NAME']."/intranet" => "In&iacute;cio",
+         "educar_index.php"                  => "i-Educar - Escola",
+         ""        => "{$nomeMenu} s&eacute;rie"
+    ));
+    $this->enviaLocalizacao($localizacao->montar());
+
     $this->nome_url_cancelar = "Cancelar";
 
     return $retorno;
@@ -188,8 +198,9 @@ class indice extends clsCadastro
 
     $this->campoLista('concluinte', 'Concluinte', $opcoes, $this->concluinte);
 
-    $this->campoMonetario('carga_horaria', 'Carga Hor&aacute;ria',
-      $this->carga_horaria, 7, 7, TRUE);
+    $this->campoMonetario('carga_horaria', 'Carga Hor&aacute;ria', $this->carga_horaria, 7, 7, TRUE);
+
+    $this->campoNumero('dias_letivos', 'Dias letivos', $this->dias_letivos, 3, 3, TRUE);
 
     $this->campoNumero('intervalo', 'Intervalo', $this->intervalo, 2, 2, TRUE);
 
@@ -197,6 +208,8 @@ class indice extends clsCadastro
       2, 2, FALSE, '', '', FALSE, FALSE, TRUE);
 
     $this->campoNumero('idade_final', '&nbsp;até', $this->idade_final, 2, 2, FALSE);
+
+		$this->campoMemo( "observacao_historico", "Observa&ccedil;&atilde;o histórico", $this->observacao_historico, 60, 5, false );
   }
 
   function Novo()
@@ -211,7 +224,7 @@ class indice extends clsCadastro
     $obj = new clsPmieducarSerie(NULL, NULL, $this->pessoa_logada, $this->ref_cod_curso,
       $this->nm_serie, $this->etapa_curso, $this->concluinte, $this->carga_horaria,
       NULL, NULL, 1, $this->intervalo, $this->idade_inicial, $this->idade_final,
-      $this->regra_avaliacao_id);
+      $this->regra_avaliacao_id, $this->observacao_historico, $this->dias_letivos);
 
     $cadastrou = $obj->cadastra();
 
@@ -238,7 +251,7 @@ class indice extends clsCadastro
     $obj = new clsPmieducarSerie($this->cod_serie, $this->pessoa_logada, NULL,
       $this->ref_cod_curso, $this->nm_serie, $this->etapa_curso, $this->concluinte,
       $this->carga_horaria, NULL, NULL, 1, $this->intervalo, $this->idade_inicial,
-      $this->idade_final, $this->regra_avaliacao_id);
+      $this->idade_final, $this->regra_avaliacao_id, $this->observacao_historico, $this->dias_letivos);
 
     $editou = $obj->edita();
     if ($editou) {
